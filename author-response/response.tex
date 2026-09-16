@@ -31,8 +31,7 @@
 {\Large\bfseries Response to Reviewer Comments}\par
 \vspace{0.5em}
 {\bfseries ACOMPA 2026}\par
-\vspace{0.4em}
-\fbox{\bfseries Working draft---final figure artwork pending}\par
+{\bfseries Paper ID: \#4}\par
 \vspace{0.4em}
 {\large\itshape A New IoT Platform Based on PQC Algorithms:\ A Solution for Quantum Computing Threats}\par
 \vspace{0.5em}
@@ -41,7 +40,7 @@ Nhat Phat Huynh, Dong Quan Nguyen, Quan Le, Thanh Hung Le, and Minh Son Nguyen
 
 \vspace{0.75em}
 
-We thank the reviewer for the careful assessment and for recognizing the practical, architecture-driven treatment of post-quantum cryptography (PQC) migration in heterogeneous Internet of Things (IoT) systems. We agree that the figures in the submitted manuscript did not meet publication quality. This response is a working draft because the two figure files currently included in the revised manuscript are placeholders extracted from the latest DOCX version. The figure-quality response must be updated after the authors supply the final redrawn artwork. The remaining responses identify the revisions already present in the manuscript and their locations.
+We thank the reviewer for the careful assessment and for recognizing the practical, architecture-driven treatment of post-quantum cryptography (PQC) migration in heterogeneous Internet of Things (IoT) systems. We agree that the figures in the submitted manuscript did not meet publication quality. The four submitted figures have been consolidated into two author-redrawn vector schematics. Their SVG sources are retained with the manuscript, and cropped vector-PDF derivatives are used in LaTeX so that labels and line art remain sharp at publication scale. The title, scope, author list, algorithm-placement model, experimental data, and principal conclusions remain unchanged.
 
 \section*{Response to the overall assessment}
 
@@ -53,24 +52,24 @@ We thank the reviewer for the careful assessment and for recognizing the practic
 
 \textcolor{reviewblue}{\textbf{Reviewer comment:}} \emph{I am mainly concerned about the AI-generated figures (Fig. 1 and Fig. 4). The human-generated figures (Fig. 2 and Fig. 3) are of low quality and therefore must be improved.}
 
-\textbf{Response.} We agree. The four-figure structure of the submitted manuscript has been consolidated into two figures to remove overlap between the overview, hardware, sequence, and deployment views. At the authors' instruction, however, the current compiled manuscript uses the two raster images embedded in DOCX V4.0 as temporary placeholders. This working draft therefore does not claim that the reviewer's figure-quality concern has been fully resolved. Before camera-ready submission, both placeholders must be replaced by the final author-supplied redraws, and this response must be updated to state the actual production method and file format.
+\textbf{Response.} We agree. The submitted artwork has not been reused. The four-figure structure has been consolidated into two author-redrawn vector schematics to remove overlap among the overview, hardware, sequence, and deployment views. Both delivered figures consist of vector paths without embedded raster images. We also standardized line weights, typography, arrow directions, component boundaries, and captions so that the architecture remains legible in the IEEE two-column layout.
 
 The consolidation was deliberate:
 
 \begin{itemize}
-  \item \textbf{Fig. 1, ``End-node architecture for PQC-enabled IoT devices,''} carries the end-node processing, secure-boot, memory, storage, network, and peripheral content discussed in Section III-C. Its current image file is the first placeholder extracted from DOCX V4.0.
-  \item \textbf{Fig. 2, ``Three-tier deployment map for quantum-safe session establishment and passkey authentication,''} carries the node, gateway, and cloud/server placement content discussed in Section III-D. Its current image file is the second placeholder extracted from DOCX V4.0.
+  \item \textbf{Fig. 1, ``End-node architecture for PQC-enabled IoT devices,''} shows the processing core, PQC software stack, bootloader and secure boot, RAM, storage, network path, system bus, and peripheral interfaces discussed in Section III-C.
+  \item \textbf{Fig. 2, ``Three-tier deployment map for quantum-safe session establishment and passkey authentication,''} shows constrained and Linux-capable end nodes, gateway-side ML-KEM/KDF/AEAD and signature functions, optional direct PQC operation, and cloud/server trust services discussed in Section III-D.
 \end{itemize}
 
-The figure numbering, captions, and surrounding references have been reduced to exactly two figures, with no obsolete manuscript references to Figs. 3 or 4. This completed structural revision allows the final artwork to replace the two placeholder files without changing the paper's argument or section organization.
+The sequence previously shown in submitted Fig. 3 is now described in Section III-D rather than repeated as a separate diagram. The revised Fig. 2 incorporates the tier-placement content previously distributed across the overview and deployment figures. The manuscript now contains exactly two figures, with no obsolete references to Figs. 3 or 4. This revision changes the presentation, not the architecture or experimental claims.
 
 \section*{Response to technical quality and soundness}
 
 \textcolor{reviewblue}{\textbf{Reviewer assessment:}} \emph{Fair (Some technical issues or missing baselines, but potentially fixable).}
 
-\textbf{Response.} The review did not identify a specific missing baseline, and no additional physical-board or accelerator experiment was available for this revision. We therefore did not introduce an unmeasured comparison. Instead, the revised manuscript makes the evaluation boundary explicit in Section IV: the reported values are software-centric QEMU prototype measurements used as placement evidence, not cycle-accurate hardware characterization. Section IV-C also states that Linux/QEMU resident-set size is not an ESP32 SRAM-footprint measurement. The limitations paragraph identifies physical-board power, radio throughput, flash wear, timing leakage, and comparisons with existing PQC IoT architectures as future work.
+\textbf{Response.} We acknowledge the absence of a matched physical-board or accelerator baseline. No additional board-level experiment was available for this revision, so we did not introduce an unmeasured comparison. Instead, the revised manuscript makes the evaluation boundary explicit in Section IV: the reported values are software-centric QEMU prototype measurements used as placement evidence, not cycle-accurate hardware characterization. Section IV-C also states that Linux/QEMU resident-set size is not an ESP32 SRAM-footprint measurement. The limitations paragraph identifies physical-board power, radio throughput, flash wear, timing leakage, and comparisons with existing PQC IoT architectures as future work.
 
-Within that stated scope, the technical presentation has been tightened in three places. Table I connects each primitive to a deployment tier and rationale. Table II reports the measured elapsed time, resident memory, payload size, and recommended tier without changing the underlying values. Section IV-D links the observations to buffer sizing, gateway admission control, and candidate acceleration kernels. These revisions clarify what the evidence supports and avoid extending the conclusions beyond the prototype.
+Within that stated scope, the technical presentation has been tightened in three places. Table I connects each primitive to a deployment tier and rationale. Table II reports the measured elapsed time, resident memory, payload size, and recommended tier without changing the underlying values. Section IV-D links the observations to buffer sizing, gateway admission control, and candidate acceleration kernels. The end-node description now distinguishes AXI/AHB/APB bus interfaces from memory-mapped I/O, and the secure-channel text identifies AES-GCM and ChaCha20-Poly1305 as example authenticated-encryption schemes. These revisions clarify what the evidence supports without extending the conclusions beyond the prototype.
 
 \section*{Response to originality and novelty}
 
@@ -86,15 +85,15 @@ Within that stated scope, the technical presentation has been tightened in three
 \toprule
 \textbf{Reviewer concern} & \textbf{Revision} & \textbf{Location} \\
 \midrule
-AI-generated appearance in submitted Figs. 1 and 4 & Consolidated the four-figure structure to two figures; final author redraw is still pending in this working draft & Placeholder Figs. 1 and 2; Sections III-C--D \\
-Low quality of submitted Figs. 2 and 3 & Retained the two DOCX V4.0 images only as replaceable placeholders; no final-quality claim is made & Placeholder Figs. 1 and 2 \\
-Technical scope and possible missing baselines & Preserved the measured values, clarified the QEMU/prototype boundary, and identified unperformed board-level comparisons as future work & Section IV-A--D; Conclusion \\
+AI-generated appearance in submitted Figs. 1 and 4 & Replaced the submitted artwork with two author-redrawn SVG schematics and vector-PDF derivatives & Revised Figs. 1 and 2; Sections III-C--D \\
+Low quality of submitted Figs. 2 and 3 & Standardized line art, typography, arrows, labels, and captions; removed redundant figure content & Revised Figs. 1 and 2 \\
+Technical scope and possible missing baselines & Preserved the measured values, clarified the QEMU/prototype boundary and interface terminology, and identified unperformed board-level comparisons as future work & Section IV-A--D; Conclusion \\
 Incremental novelty & Stated the contribution as tiered placement, migration metadata/policy, and measurement-guided system design rather than a new primitive & Introduction; Section III-A; Conclusion \\
 \bottomrule
 \end{tabularx}
 \normalsize
 
 \vspace{0.6em}
-We thank the reviewer again. The manuscript text, figure locations, numbering, and captions are ready for the final author-supplied artwork. This response must not be submitted until the two placeholders have been replaced and the figure-quality statements above have been updated to describe the delivered files accurately.
+We thank the reviewer again. The camera-ready manuscript now contains the final vector artwork and the corresponding figure references. No new experiment, numerical result, or cryptographic claim was introduced during the figure revision.
 
 \end{document}

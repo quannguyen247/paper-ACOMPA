@@ -13,11 +13,6 @@
 \urlstyle{same}
 \newcolumntype{Y}{>{\raggedright\arraybackslash}X}
 \hyphenation{Web-Authn post-quantum crypto-graphic crypto-graphy micro-con-trol-ler}
-\newcommand{\placeholdernotice}{%
-  \par\smallskip
-  \fbox{\footnotesize Figure 2 placeholder artwork from DOCX V4.0---replace before submission.}%
-  \par\smallskip
-}
 
 \title{A New IoT Platform Based on PQC Algorithms: A Solution for Quantum Computing Threats}
 
@@ -31,6 +26,7 @@ Ho Chi Minh City, Vietnam\\
 \hypersetup{
   pdftitle={A New IoT Platform Based on PQC Algorithms: A Solution for Quantum Computing Threats},
   pdfauthor={Nhat Phat Huynh; Dong Quan Nguyen; Quan Le; Thanh Hung Le; Minh Son Nguyen},
+  pdfsubject={ACOMPA 2026 Paper \#4},
   pdfkeywords={post-quantum cryptography, Internet of Things, passkey, WebAuthn, ML-KEM, ML-DSA, SLH-DSA, RISC-V}
 }
 
@@ -58,7 +54,7 @@ The remainder of this paper is organized as follows. Section~II reviews NIST-sta
 
 \subsection{NIST PQC standards and software ecosystems}
 
-ML-KEM, formerly CRYSTALS-Kyber, is a key-encapsulation mechanism based on module learning with errors. It provides a shared secret and ciphertext, but it is not intended to encrypt application data directly. A practical protocol uses ML-KEM to establish a session secret and then applies a symmetric cipher such as AES or ChaCha20 to the actual IoT payload. ML-DSA, formerly CRYSTALS-Dilithium, provides module-lattice-based digital signatures and is a candidate for recurring authentication when bandwidth and buffering are provisioned. SLH-DSA, derived from SPHINCS+, is hash-based and conservative, but its signatures are much larger and its signing procedure is slower than lattice-based alternatives~\cite{fips203,fips204,fips205}.
+ML-KEM, formerly CRYSTALS-Kyber, is a key-encapsulation mechanism based on module learning with errors. It provides a shared secret and ciphertext, but it is not intended to encrypt application data directly. A practical protocol uses ML-KEM to establish a session secret and then applies an authenticated-encryption scheme such as AES-GCM or ChaCha20-Poly1305 to the actual IoT payload. ML-DSA, formerly CRYSTALS-Dilithium, provides module-lattice-based digital signatures and is a candidate for recurring authentication when bandwidth and buffering are provisioned. SLH-DSA, derived from SPHINCS+, is hash-based and conservative, but its signatures are much larger and its signing procedure is slower than lattice-based alternatives~\cite{fips203,fips204,fips205}.
 
 Open-source libraries also influence deployability. PQClean focuses on clean, portable, tested C implementations of post-quantum algorithms~\cite{kannwischer2022}, whereas the Open Quantum Safe project provides a higher-level software ecosystem for prototyping quantum-safe cryptography and integrating algorithms into Internet protocols~\cite{stebila2017}. These ecosystems are useful as reproducible software baselines before algorithm-specific hardware acceleration or board-level optimization is introduced.
 
@@ -132,19 +128,18 @@ The communication and peripheral side connects the PQC stack to real IoT workloa
 
 The platform separates credential enrollment from runtime authentication. During enrollment, the IoT node creates or receives a PQC-capable credential profile that includes the algorithm identifier, public key, parameter set, credential identifier, key usage, and attestation metadata. For a device-bound credential, the private key remains inside the device or its protected execution boundary. The relying-party server stores only the public credential metadata and the associated policy state, while the gateway may cache policy information for constrained or intermittently connected nodes.
 
-During authentication, the server issues a challenge and policy decision for the current session. The node or gateway signs the challenge with ML-DSA for regular device authentication, while SLH-DSA is reserved for firmware, audit, or long-term attestation evidence. ML-KEM is used separately to establish a fresh shared secret, and the derived symmetric key protects the IoT data channel. Thus, ML-KEM handles session-key establishment, whereas ML-DSA or SLH-DSA handles authentication and attestation.
+During authentication, the server issues a challenge and policy decision for the current session. The node signs the challenge with ML-DSA for device-bound authentication. In a gateway-assisted profile, the gateway verifies that signature or signs under an explicitly delegated gateway credential; it does not receive the node's private key. SLH-DSA is reserved for firmware, audit, or long-term attestation evidence. ML-KEM is used separately to establish a fresh shared secret, and the derived symmetric key protects the IoT data channel. Thus, ML-KEM handles session-key establishment, whereas ML-DSA or SLH-DSA handles authentication and attestation.
 
 Key rotation is handled at the policy layer. When a parameter set is deprecated or a device class becomes too weak, the server can require re-enrollment with a stronger credential profile. For sleeping nodes, the gateway can buffer policy updates and apply them when the node wakes, reducing battery and radio overhead.
 
 \begin{figure*}[t]
 \centering
-\placeholdernotice
-\includegraphics[height=0.30\textheight,keepaspectratio]{figures/fig2_placeholder_docx.png}
+\includegraphics[height=0.62\textheight,keepaspectratio]{figures/fig2.pdf}
 \caption{Three-tier deployment map for quantum-safe session establishment and passkey authentication.}
 \label{fig:three-tier}
 \end{figure*}
 
-Fig.~\ref{fig:three-tier} maps the placement rule to system components. End nodes hold credentials and run optional direct PQC operations. The gateway handles ML-KEM session setup, KDF derivation, AEAD local protection, ML-DSA challenge verification, and optional SLH-DSA firmware or OTA verification. The cloud/server tier provides PQC PKI/CA, signed firmware distribution, secure storage, signature verification, and key lifecycle management. Thus, Table~\ref{tab:placement} becomes an enforceable deployment policy, not just an algorithm list.
+Fig.~\ref{fig:three-tier} maps the placement rule to system components. End nodes hold credentials. Capable 64-bit nodes can run direct PQC operations, whereas constrained nodes use the gateway-assisted path. The gateway handles ML-KEM session setup, KDF derivation, AEAD local protection, ML-DSA challenge verification, and optional SLH-DSA firmware or OTA verification. The cloud/server tier provides PQC PKI/CA, signed firmware distribution, secure storage, signature verification, and key lifecycle management. Thus, Table~\ref{tab:placement} becomes an enforceable deployment policy, not just an algorithm list.
 
 \subsection{Security boundaries and failure handling}
 

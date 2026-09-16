@@ -1,0 +1,347 @@
+A New IoT Platform Based on PQC Algorithms: A
+    Solution for Quantum Computing Threats
+            Nhat Phat Huynh, Dong Quan Nguyen, Quan Le, Thanh Hung Le, and Minh Son Nguyen1,2
+                                                1
+                                          University of Information Technology
+                                            2
+                                        Vietnam National University at HCM City
+                                              Ho Chi Minh City, Vietnam
+                 {24521294, 24521438, 24521429}@gm.uit.edu.vn; hunglt@ms.uit.edu.vn; sonnm@uit.edu.vn
+
+
+   Abstract—The migration from classical public-key cryptography      movement [4], [5], while hash-oriented accelerators are relevant
+to post-quantum cryptography is becoming important for Internet       for SPHINCS+/SLH-DSA-style signatures [6]. At the system
+of Things (IoT) authentication, because large-scale quantum           level, energy, bandwidth, and communication cost must be
+computers would undermine the RSA, Diffie-Hellman, and elliptic-
+curve assumptions used by many current authentication and             evaluated together rather than as isolated runtime values [7]–
+key-establishment mechanisms. This paper proposes a scalable          [9]. This paper addresses the resulting migration gap through
+Edge-IoT post-quantum cryptography (PQC) platform that treats         three contributions: a layered node/gateway/server architecture
+PQC deployment as a tiered system problem rather than a               for PQC-enabled IoT, a PQC-aware passkey metadata and
+direct primitive replacement. The architecture assigns ML-KEM         hybrid-policy model, and a measurement-driven placement rule
+to session-key establishment, ML-DSA to challenge-response
+authentication at the node or gateway tier, and SLH-DSA to high-      that maps ML-KEM, ML-DSA, and SLH-DSA to the tiers
+assurance but infrequent firmware, audit, and attestation tasks. To   where they are most practical.
+connect these algorithms to IoT workflows, the platform defines a        The remainder of this paper is organized as follows. Sec-
+PQC-aware passkey metadata object, a gateway-mediated hybrid          tion II reviews NIST-standardized PQC algorithms, software
+migration policy, and an embedded data path that uses shared
+                                                                      ecosystems, WebAuthn/passkey migration, embedded commu-
+buffers and high-throughput peripheral paths. A software-centric
+evaluation on QEMU-based ARM64 and RISC-V targets, together           nication constraints, and the migration gap in current IoT
+with a concurrent stress workload, compares latency, memory,          stacks. Section III presents the proposed scalable Edge-IoT
+and payload size. The results indicate that ML-KEM and ML-            PQC architecture, including the tiered algorithm-placement
+DSA are practical building blocks for the measured node/gateway       model, PQC passkey object, hardware data path, enrollment
+workflow, whereas SLH-DSA should be used selectively because
+                                                                      and authentication flow, key rotation, and failure handling. Sec-
+of its large signatures and high signing latency.
+   Index Terms—Post-quantum cryptography, Internet of Things,         tion IV describes the QEMU-based ARM64/RISC-V evaluation
+passkey, WebAuthn, ML-KEM, ML-DSA, SLH-DSA, RISC-V                    and stress-test results, then discusses the design implications
+                                                                      for buffering, gateway offloading, and hardware acceleration.
+                       I. I NTRODUCTION                               Section V concludes the paper and outlines future work on
+                                                                      physical-board measurements and accelerator integration.
+   Quantum computing creates a long-term migration risk for
+IoT authentication. RSA, Diffie-Hellman, and elliptic-curve                           II. R ELATED W ORK
+mechanisms rely on integer factorization or discrete-logarithm
+                                                                  A. NIST PQC standards and software ecosystems
+assumptions that are vulnerable to Shor’s algorithm [1]. This
+affects not only traditional key exchange and certificate-based      ML-KEM, formerly CRYSTALS-Kyber, is a key-
+authentication, but also passwordless systems whose credentials encapsulation mechanism based on module learning with
+are still implemented with classical public-key signatures. IoT errors. It provides a shared secret and ciphertext, but it is
+devices make the migration harder because they often operate not intended to encrypt application data directly. A practical
+with limited SRAM, flash, radio bandwidth, and energy budget. protocol uses ML-KEM to establish a session secret and then
+As a result, replacing a compact ECDSA or ECDH operation applies an authenticated-encryption scheme such as AES-GCM
+with a larger PQC object can change packet sizes, buffer or ChaCha20-Poly1305 to the actual IoT payload. ML-DSA,
+allocation, credential storage, and end-to-end latency.           formerly CRYSTALS-Dilithium, provides module-lattice-based
+   Prior work shows that PQC deployment cannot be treated as digital signatures and is a candidate for recurring authentication
+a direct drop-in replacement for classical public-key primitives. when bandwidth and buffering are provisioned. SLH-DSA,
+Configurable lattice crypto-processors and IoT-oriented PQC derived from SPHINCS+, is hash-based and conservative, but
+processors demonstrate that polynomial arithmetic, sampling, its signatures are much larger and its signing procedure is
+and memory organization dominate the cost of lattice-based slower than lattice-based alternatives [12]–[14].
+cryptography [2], [3]. FPGA and software-hardware co-design          Open-source libraries also influence deployability. PQClean
+studies further show that Kyber/ML-KEM and Dilithium/ML- focuses on clean, portable, tested C implementations of post-
+DSA benefit from dedicated acceleration and careful data quantum algorithms [10], whereas the Open Quantum Safe
+project provides a higher-level software ecosystem for proto-        ML-DSA, ML-KEM, SLH-DSA, or hybrid credentials changes
+typing quantum-safe cryptography and integrating algorithms          key and signature sizes, buffer allocation, packet fragmentation
+into Internet protocols [11]. These ecosystems are useful            behavior, nonvolatile storage layouts, and the cost of certificate
+as reproducible software baselines before algorithm-specific         or credential exchange [12]–[14], [17], [18]. These changes
+hardware acceleration or board-level optimization is introduced.     become visible at the application level when the authentication
+                                                                     payload is comparable to, or larger than, the original telemetry
+B. WebAuthn, passkeys, and quantum migration                         record. A practical design therefore needs explicit payload,
+   WebAuthn defines an API for creating and using scoped,            buffer, and gateway-assistance policies rather than a blind
+attested, public-key credentials. A credential is created for        algorithm substitution.
+a WebAuthn relying party, stored by an authenticator, and               The migration gap is also operational. During a transition
+later used only for origins that belong to the same relying          period, some devices will support only classical creden-
+party. Authentication follows a challenge-response model in          tials, some will support hybrid credentials, and new devices
+which the authenticator proves possession of the private key         may support PQC-only credentials. Transition guidance from
+by producing a digital signature over data derived from the          NIST frames PQC deployment as a staged migration from
+server challenge [15]. A post-quantum passkey can preserve           quantum-vulnerable public-key standards to post-quantum
+this high-level workflow while replacing or hybridizing the          digital-signature and key-establishment standards, not as a
+signature algorithm inside the credential object. In this paper,     one-step primitive replacement [17]. The proposed platform
+the proposed PQC credential is therefore treated as a migration-     therefore treats hybrid mode as a policy state. This avoids
+oriented profile rather than as a claim that current WebAuthn        forcing a single cutover point and allows a gateway to mediate
+deployments universally support PQC credentials.                     between legacy and PQC-capable devices while the server
+   A complete PQC credential requires more metadata than a           maintains a unified credential registry [16], [17].
+classical credential. The credential must carry the algorithm
+identifier, public key encoding, parameter set, key usage, format,                  III. P ROPOSED A RCHITECTURE
+attestation evidence, user handle, credential identifier, and        A. Tiered algorithm-placement model
+optional hybrid-mode indicator. These fields are necessary
+because ML-DSA and related PQC algorithms expose multiple          The proposed architecture is organized around three ex-
+parameter sets, larger public keys and signatures, and specific ecution tiers. The IoT node owns device-bound credentials
+COSE or JOSE representations [16]. They also allow the          and performs latency-sensitive work such as session-key
+relying-party server and gateway to distinguish classical-only, establishment and approved challenge signing. The gateway is
+hybrid, and PQC-only credentials during a transition period     a security concentrator, not a root of identity; it translates
+without assuming universal current WebAuthn support for PQC     protocols, caches policy, applies rate limits, aggregates or
+credentials.                                                    verifies signatures, and offloads costly attestation. The relying-
+                                                                party server stores public credential metadata, verifies results,
+C. Embedded communication and platform context                  and manages revocation, rotation, re-enrollment, and policy
+   The embedded platform around the cryptographic library is updates.
+equally important because communication bandwidth, memory          Table I turns this tiering into a placement rule. ML-KEM
+movement, storage layout, and boot-time trust also determine    stays  near the node because it produces a compact ciphertext
+whether PQC is deployable on constrained IoT devices [7]–       and   shared    secret for session setup. ML-DSA can run at
+[9]. UART remains useful for logging and low-rate command       the  node    or  gateway according to link bandwidth, buffer
+channels, but PQC public keys, ciphertexts, and signatures      capacity,  and   authentication rate. SLH-DSA is pushed to the
+are large enough that practical nodes should rely on higher-    gateway    or  server  because its signatures are large but useful
+throughput interfaces such as Ethernet, Wi-Fi, cellular links,  for conservative    firmware,   audit, and attestation tasks. Hybrid
+SPI, USB/JTAG, SD/MMC, eMMC, or other platform-specific         mode   is a  transition  state across  all tiers.
+storage and peripheral paths [4]–[6], [12]–[14]. At the system     The  following    subsections  use  Table   I as the decision point:
+level, PQC integration also affects how firmware images,        credential  metadata    declares  the allowed    profile, the hardware
+credential stores, session state, sensor data, and attestation  path  moves    the resulting  objects, and   failure  handling decides
+records move between the processing core, RAM, nonvolatile      whether   to  offload,  defer, or reject  an  operation.
+storage, peripherals, and the cloud/server path. A practical
+PQC platform should therefore connect cryptographic policy, B. PQC passkey object and policy
+storage, transport, and boot-time trust instead of treating PQC    The proposed credential object carries the information
+as a single isolated library call.                              needed to enforce Table I. The minimum fields are
+                                                                alg, publicKey, parameters, keyUsage, format,
+D. Migration gap in current IoT stacks                          attestation, userHandle, and credentialId. The
+   Most existing IoT security stacks were built around compact hybrid field indicates whether the credential is bound to both
+classical primitives and constrained packet, memory, and a classical algorithm and a PQC algorithm. The parameters
+storage budgets [7]–[9]. Replacing ECDSA or ECDH with field stores the security level and parameter set, for example
+                           TABLE I                                        the platform bus and high-throughput interfaces rather than
+   P LACEMENT POLICY USED BY THE PROPOSED PQC I OT PLATFORM               repeatedly copied through narrow command paths. This makes
+                                                                          the same node architecture scalable from small microcontroller-
+Primitive    Placement          Design rationale
+                                                                          class devices to Linux-capable edge nodes.
+ML-KEM       IoT node/edge     Session-key establishment with compact
+             gateway           ciphertext and shared secret.              D. Enrollment, authentication, and key rotation
+ML-DSA       Node or gateway   Challenge-response authentication with
+                                                                    The platform separates credential enrollment from runtime
+                               moderate signature size; node or gateway
+                               placement depends on bandwidth andauthentication. During enrollment, the IoT node creates or
+                               buffering.                        receives a PQC-capable credential profile that includes the
+SLH-DSA      Gateway or server Conservative hash-based attestation;
+                                                                 algorithm identifier, public key, parameter set, credential
+                               suitable for infrequent firmware, audit,
+                               and long-term trust records.      identifier, key usage, and attestation metadata. For a device-
+Hybrid mode  All tiers                                           bound credential, the private key remains inside the device
+                               Transition policy for devices that still
+                               require classical compatibility.
+                                                                 or its protected execution boundary. The relying-party server
+                                                                 stores only the public credential metadata and the associated
+                                                                 policy state, while the gateway may cache policy information
+ML-KEM-512 or ML-DSA-65, so that the verifier does not for constrained or intermittently connected nodes.
+misinterpret a public key, ciphertext, or signature buffer.         During authentication, the server issues a challenge and
+   The policy engine selects algorithms according to message policy decision for the current session. The node or gateway
+class rather than applying one primitive to every transaction. signs the challenge with ML-DSA for regular device authen-
+Telemetry uses ML-KEM to establish a shared secret and tication, while SLH-DSA is reserved for firmware, audit, or
+then protects application data with symmetric encryption. long-term attestation evidence. ML-KEM is used separately
+Authentication and enrollment use ML-DSA at the node or to establish a fresh shared secret, and the derived symmetric
+gateway when the signature size and response latency fit the key protects the IoT data channel. Thus, ML-KEM handles
+deployment budget. Firmware release signing, gateway audit session-key establishment, whereas ML-DSA or SLH-DSA
+records, and root-of-trust evidence may require SLH-DSA handles authentication and attestation.
+because these events are less frequent and can tolerate larger      Key rotation is handled at the policy layer. When a parameter
+payloads.                                                        set is deprecated or a device class becomes too weak, the server
+   To keep the decision deterministic, each profile defines can require re-enrollment with a stronger credential profile.
+allowed parameter sets, maximum object sizes, key usage, For sleeping nodes, the gateway can buffer policy updates and
+and offload behavior. The node does not choose these profiles apply them when the node wakes, reducing battery and radio
+independently; the relying-party policy defines the accepted overhead.
+algorithms and parameter sets, while the gateway enforces rate      Fig. 2 maps the placement rule to system components. End
+limits and offload decisions.                                    nodes hold credentials and run optional direct PQC operations.
+                                                                 The gateway handles ML-KEM session setup, KDF deriva-
+C. End-node hardware architecture                                tion, AEAD local protection, ML-DSA challenge verification,
+   Fig. 1 illustrates the detailed architecture of the proposed and optional SLH-DSA firmware or OTA verification. The
+PQC-enabled IoT node. The node is built around a 32/64- cloud/server tier provides PQC PKI/CA, signed firmware
+bit processing core, such as ARM, RISC-V, or x86, that distribution, secure storage, signature verification, and key
+runs the PQC software stack and controls the surrounding lifecycle management. Thus, Table I becomes an enforceable
+peripherals through a memory-mapped system bus using AXI, deployment policy, not just an algorithm list.
+AHB, or APB interfaces. Power management supplies the node
+from a battery or external source, while the bootloader and E. Security boundaries and failure handling
+secure-boot block establish the trusted firmware state before       The node boundary protects device-bound secrets and per-
+PQC credentials, policies, and communication services are forms the minimum cryptographic work needed to authenticate
+enabled. RAM is used for temporary cryptographic buffers and itself. The gateway boundary protects aggregation state, rate
+session state, whereas flash or eMMC stores firmware images, limits repeated verification attempts, and prevents a single
+credential metadata, logs, and local policy data.                slow signature operation from blocking all sensor traffic. The
+   The communication and peripheral side connects the PQC server boundary protects long-term policy, audit records, and
+stack to real IoT workloads. Ethernet, Wi-Fi, 4G, or 5G credential revocation. These boundaries make the system more
+provides the path to the cloud/server for enrollment, telemetry resilient to partial compromise because a low-end node does
+upload, policy update, and authentication exchange. SPI, not need to hold every policy key or perform every attestation
+USB/JTAG, SD/MMC/eMMC, and ADC interfaces connect operation.
+secure elements, debugging or provisioning tools, local storage,    Failure handling is deliberately conservative. If a node cannot
+and external sensors. Because PQC public keys, ciphertexts, process a required PQC profile, the server can downgrade only
+and signatures may be much larger than classical objects, these to a policy-approved hybrid path and record the event. If
+data should be staged in shared buffers and moved through a gateway is overloaded, the system can continue accepting
+                                         Fig. 1. End-node architecture for PQC-enabled IoT devices.
+
+
+
+telemetry encrypted under a symmetric key established through          are ciphertext size, decapsulation time, and shared-secret
+ML-KEM while delaying noncritical attestation verification.            availability. For signatures, the critical values are signing
+If an SLH-DSA signature is required for firmware or audit              time, verification time, signature length, and the number of
+records, the platform does not silently replace it with a lighter      concurrent verification requests that a gateway can absorb. This
+algorithm; it schedules the operation at a tier that can handle the    tier-oriented view is more useful for IoT architecture than a
+cost. This prevents performance optimization from weakening            single average runtime number.
+the security objective.                                                   The evaluation is tied to three architectural questions. First,
+                                                                       it checks whether ML-KEM ciphertext sizes and decapsulation
+               IV. E XPERIMENT AND R ESULTS
+                                                                       latency are small enough for node-side session establishment.
+A. Experimental setup                                                  Second, it compares ML-DSA and SLH-DSA as authentication
+   The prototype evaluation used reference-style C imple-              candidates under both single-operation and concurrent work-
+mentations of Kyber/ML-KEM, Dilithium/ML-DSA, and                      loads. Third, it records resident memory and payload size to
+SPHINCS+/SLH-DSA. Single-operation experiments were                    determine whether an operation should remain on the node or be
+executed on Ubuntu Server images in QEMU-based virtual                 moved to the gateway/server tier. The results are therefore used
+ARM64 and RISC-V targets. The QEMU configuration used                  as placement evidence, not as final cycle-accurate hardware
+one virtual core and 296 MB RAM, with NTESTS = 10000 for               characterization.
+ML-KEM and ML-DSA and NTESTS = 1000 for SLH-DSA
+because the hash-based signature family is significantly slower. B. Single-operation observations
+Additional stress tests simulated high-load IoT conditions          The QEMU results support the proposed placement policy.
+with approximately 50 or more concurrent message-processing On the tested ARM64 target, ML-KEM end-to-end operation
+threads.                                                         time was approximately 1.00 ms for Kyber512, 1.40 ms for
+   The measured outputs include average key generation time, Kyber768, and 2.02 ms for Kyber1024. ML-DSA was heavier
+signing or encapsulation time, verification or decapsulation but still practical for measured authentication workflows, with
+time, end-to-end operation time in the test harness, public key end-to-end values of approximately 4.07 ms for Dilithium2,
+size, secret key size, signature size, ciphertext size, shared 6.42 ms for Dilithium3, and 8.41 ms for Dilithium5. On the
+secret size, elapsed response time, CPU user time, CPU system selected RISC-V configuration, the same operations remained
+time, and maximum resident memory. These metrics were in a similar order of magnitude but were generally slower.
+selected because IoT deployment is constrained not only by          SLH-DSA behaved differently. For selected RISC-V 64-
+cryptographic security but also by latency, memory, and link bit SPHINCS+ parameters, sha2-128f-simple signed in about
+bandwidth.                                                       205.06 ms with a 17088-byte signature, while shake-256f-
+   The experiments were not designed to choose a universal robust signed in about 2508.36 ms with a 49856-byte signature.
+winner. Instead, they expose which operation dominates each These values show that SLH-DSA is not a good default for
+deployment tier. For key establishment, the critical values frequent low-latency IoT messages. The architecture therefore
+                       Fig. 2. Three-tier deployment map for quantum-safe session establishment and passkey authentication.
+
+
+
+                         TABLE II                                         2420 to 4627 bytes across the tested security levels, while
+  S TRESS WORKLOAD SUMMARY FROM THE PROTOTYPE MEASUREMENT                 SPHINCS+ reaches 17088 bytes and approximately 29.46 s
+                                                                          elapsed time in the measured stress workload. The Kyber
+Algorithm    Measured stress metrics (elapsed, RSS,   Recommended tier
+             payload)                                                     family has smaller ciphertexts, from 768 to 1568 bytes. This
+Dilithium2   1110.97 ms, 628 KB, 2420 B sig.          Node/gateway        supports the decision to keep ML-KEM at the node and to
+Dilithium3   1406.81 ms, 660 KB, 3309 B sig.          Gateway             avoid per-message SLH-DSA signing at the edge.
+Dilithium5   1768.26 ms, 704 KB, 4627 B sig.          Gateway
+Kyber512     1589.82 ms, 704 KB, 768 B ct.            Node
+Kyber768     1584.53 ms, 644 KB, 1088 B ct.           Node
+                                                                             The memory column in Table II is a Linux/QEMU resident-
+Kyber1024    1822.05 ms, 652 KB, 1568 B ct.           Node/gateway        set measurement, not a direct SRAM-footprint estimate for
+SPHINCS+     29463.60 ms, 612 KB, 17088 B sig.        Server              an ESP32-class microcontroller. It should therefore be used
+                                                                          as a relative software-side indicator rather than as proof
+                                                                          that the same workload fits unchanged in microcontroller
+treats SLH-DSA as a gateway/server operation or an infrequent             SRAM. The dominant constraint is the combination of response
+firmware and audit operation.                                             time, payload length, and concurrency. A node that transmits
+                                                                          small sensor messages over a low-bandwidth link can spend
+C. Stress-test analysis                                                   more bandwidth on the signature than on the application
+   Table II summarizes the stress workload. The signature-based           data. Therefore, the proposed platform batches, aggregates,
+algorithms show a direct payload penalty: Dilithium grows from            or offloads heavy signatures at the gateway. For message-level
+confidentiality, the node establishes a shared secret using ML-                                  V. C ONCLUSION
+KEM and then encrypts the application stream with a symmetric             This paper proposed a scalable Edge-IoT platform for post-
+cipher.                                                                quantum authentication and session establishment. The design
+   These results should be interpreted as prototype measure-           connects NIST-standardized PQC algorithms with a WebAuthn-
+ments rather than final silicon characterization. QEMU is useful       style credential model, a hybrid migration policy, and an
+for comparing software flows and parameter sets, but final             embedded data path for large PQC objects. The central idea
+deployment should include power measurement, real radio                is algorithm placement: ML-KEM is kept close to the node
+throughput, flash-wear analysis, and timing-leakage tests on           for efficient session-key establishment, ML-DSA supports
+physical boards. Nevertheless, the relative behavior is sufficient     challenge-response authentication at the node or gateway tier,
+to guide the proposed tiering rule: lattice-based KEM and              and SLH-DSA is used selectively for high-assurance but
+DSA are practical building blocks for node/gateway workflows,          infrequent attestation.
+while hash-based signatures are better used at lower frequency            The prototype measurements support this division. ML-
+or at a higher-resource tier.                                          KEM and ML-DSA have manageable latency and payload
+                                                                       sizes in the measured node/gateway workflow, whereas SLH-
+                                                                       DSA provides a conservative hash-based option at the cost of
+D. Design implications
+                                                                       much larger signatures and higher signing latency. The stress-
+   The first implication is that PQC integration should be buffer-     test analysis further shows that payload size and concurrency
+first. Static buffers sized for classical signatures are not enough.   can dominate the design even when peak resident memory
+Firmware should define separate buffers for KEM ciphertexts,           is acceptable. These findings motivate buffer-first firmware
+digital signatures, credential metadata, and application payloads,     design, gateway-side rate control, and hardware acceleration
+then enforce maximum sizes at compile time. This avoids                focused on polynomial arithmetic, NTT, SHA-2, and SHAKE
+accidental stack growth and makes memory pressure visible              kernels.
+during review. For RTOS-based nodes, long signatures should               The current evaluation remains software-centric and
+be allocated in controlled memory regions rather than on small         simulation-assisted. Future work will implement the architec-
+task stacks.                                                           ture on physical ESP32, ARM, and RISC-V boards; measure
+   The second implication is that authentication should be rate-       power, flash wear, radio throughput, and timing leakage; and
+aware. A gateway that verifies many signatures concurrently            compare the platform with existing PQC IoT architectures under
+may become the bottleneck even if each individual verification         larger concurrent workloads. This will convert the proposed
+is acceptable. The gateway therefore needs queues, timeouts,           migration baseline into a board-level implementation suitable
+and admission control. When traffic bursts occur, telemetry            for deployment-oriented evaluation.
+encrypted under a symmetric key established through ML-KEM                                          R EFERENCES
+can continue while noncritical audit signatures are deferred.
+This is useful in sensor fleets where data freshness and identity      [1] P. W. Shor, “Polynomial-time algorithms for prime factorization and
+                                                                           discrete logarithms on a quantum computer,” SIAM Journal on Computing,
+assurance have different real-time requirements.                           vol. 26, no. 5, pp. 1484–1509, Oct. 1997.
+   The third implication is that hardware acceleration should          [2] U. Banerjee, T. S. Ukyab, and A. P. Chandrakasan, “Sapphire: A
+                                                                           configurable crypto-processor for post-quantum lattice-based protocols,”
+target the dominant kernels rather than the protocol wrapper.              IACR Transactions on Cryptographic Hardware and Embedded Systems,
+For lattice-based schemes, polynomial arithmetic and number-               vol. 2019, no. 4, pp. 17–61, Aug. 2019.
+theoretic transform units are natural acceleration targets. For        [3] Z. Ye, R. Song, H. Zhang, D. Chen, R. C.-C. Cheung, and K. Huang,
+                                                                           “A highly-efficient lattice-based post-quantum cryptography processor for
+hash-based signatures, SHA-2 and SHAKE throughput domi-                    IoT applications,” IACR Transactions on Cryptographic Hardware and
+nate. In an accelerator-equipped variant, a future FPGA or ASIC            Embedded Systems, vol. 2024, no. 2, pp. 130–153, Mar. 2024.
+implementation should expose memory-mapped accelerator                 [4] X. Carril, C. Kardaris, J. Ribes-González, O. Farràs, C. Hernandez,
+                                                                           V. Kostalabros, J. U. González-Jiménez, and M. Moretó, “Hardware
+registers and buffer descriptors so that the software stack can            acceleration for high-volume operations of CRYSTALS-Kyber and
+reuse the same policy and buffer architecture described in Fig. 1.         CRYSTALS-Dilithium,” ACM Transactions on Reconfigurable Technol-
+This keeps hardware acceleration aligned with the proposed                 ogy and Systems, vol. 17, no. 3, pp. 41:1–41:26, Sep. 2024.
+                                                                       [5] G. Mao, D. Chen, G. Li, W. Dai, A. I. Sanka, Ç. K. Koç, and R. C. C.
+platform model: the node, gateway, or server may accelerate the            Cheung, “High-performance and configurable SW/HW co-design of
+expensive kernel, but the credential profile, buffer ownership,            post-quantum signature CRYSTALS-Dilithium,” ACM Transactions on
+and placement policy remain controlled by software.                        Reconfigurable Technology and Systems, vol. 16, no. 3, pp. 44:1–44:28,
+                                                                           Sep. 2023.
+   Finally, the implementation should make policy decisions            [6] P. Karl, J. Schupp, and G. Sigl, “Performance and communication cost
+observable and testable. A verifier should be able to determine            of hardware accelerators for hashing in post-quantum cryptography,”
+which credential profile, parameter set, hybrid state, and                 ACM Transactions on Embedded Computing Systems, vol. 24, no. 5, pp.
+                                                                           66:1–66:31, Sep. 2025.
+gateway-offload decision was used for each authentication event.       [7] C. A. Roma, C.-E. A. Tai, and M. A. Hasan, “Energy efficiency analysis
+This reduces ambiguity during migration, supports audit and                of post-quantum cryptographic algorithms,” IEEE Access, vol. 9, pp.
+revocation, and prevents an overloaded gateway from silently               71 295–71 317, 2021.
+                                                                       [8] Z. Liu, K.-K. R. Choo, and J. Großschädl, “Securing edge devices in the
+replacing a required high-assurance operation with a weaker                post-quantum internet of things using lattice-based cryptography,” IEEE
+one.                                                                       Communications Magazine, vol. 56, no. 2, pp. 158–162, Feb. 2018.
+ [9] M. Schöffel, F. Lauer, C. C. Rheinländer, and N. Wehn, “On the energy
+     costs of post-quantum KEMs in TLS-based low-power secure IoT,” in
+     Proceedings of the International Conference on Internet-of-Things Design
+     and Implementation (IoTDI), Charlottesville, VA, USA, 2021, pp. 158–
+     168.
+[10] M. J. Kannwischer, P. Schwabe, D. Stebila, and T. Wiggers, “Improving
+     software quality in cryptography standardization projects,” in Proceedings
+     of the IEEE European Symposium on Security and Privacy Workshops
+     (EuroS&PW), 2022, pp. 19–30.
+[11] D. Stebila and M. Mosca, “Post-quantum key exchange for the internet
+     and the open quantum safe project,” in Selected Areas in Cryptography –
+     SAC 2016, ser. Lecture Notes in Computer Science. Cham, Switzerland:
+     Springer, 2017, vol. 10532, pp. 14–37.
+[12] National Institute of Standards and Technology, “Module-lattice-based
+     key-encapsulation mechanism standard,” National Institute of Standards
+     and Technology, Federal Information Processing Standards Publication
+     FIPS 203, Aug. 2024.
+[13] ——, “Module-lattice-based digital signature standard,” National Institute
+     of Standards and Technology, Federal Information Processing Standards
+     Publication FIPS 204, Aug. 2024.
+[14] ——, “Stateless hash-based digital signature standard,” National Institute
+     of Standards and Technology, Federal Information Processing Standards
+     Publication FIPS 205, Aug. 2024.
+[15] World Wide Web Consortium (W3C), “Web authentication: An
+     API for accessing public key credentials level 3,” W3C Candidate
+     Recommendation Snapshot, May 2026. [Online]. Available: https:
+     //www.w3.org/TR/2026/CR-webauthn-3-20260526/
+[16] M. Prorock and O. Steele, “ML-DSA for JSON object signing and
+     encryption (JOSE) and CBOR object signing and encryption (COSE),”
+     Internet Engineering Task Force, Request for Comments RFC 9964,
+     May 2026. [Online]. Available: https://www.rfc-editor.org/rfc/rfc9964
+[17] D. Moody, R. Perlner, A. Regenscheid, A. Robinson, and D. Cooper,
+     “Transition to post-quantum cryptography standards,” National Institute
+     of Standards and Technology, NIST Interagency/Internal Report, Initial
+     Public Draft NIST IR 8547, Nov. 2024.
+[18] J. Goertzen and D. Stebila, “Post-quantum signatures in DNSSEC
+     via request-based fragmentation,” in Post-Quantum Cryptography –
+     PQCrypto 2023, ser. Lecture Notes in Computer Science. Cham,
+     Switzerland: Springer, 2023, vol. 14154, pp. 535–564.
+

@@ -5,12 +5,12 @@ This repository contains two independent LaTeX deliverables:
 - `manuscript/main.tex`: IEEE conference paper in US Letter, two-column format.
 - `author-response/response.tex`: point-by-point response to the supplied reviewer comments.
 
-The manuscript uses the official `IEEEtran` conference class. Figure 1 now uses the redrawn vector artwork supplied by the author; its SVG source and cropped PDF derivative are stored at:
+The manuscript uses the official `IEEEtran` conference class. Both revised figures use author-supplied/redrawn vector artwork. The editable SVG sources and cropped vector-PDF derivatives used by LaTeX are stored at:
 
 - `manuscript/figures/fig1.svg`
 - `manuscript/figures/fig1.pdf`
-
-Figure 2 remains the raster image extracted from DOCX V4.0 and is visibly marked as a placeholder in the compiled PDF. Replace `manuscript/figures/fig2_placeholder_docx.png` before camera-ready submission. The Author Response remains marked as a working draft until the final Figure 2 artwork is supplied and checked.
+- `manuscript/figures/fig2.svg`
+- `manuscript/figures/fig2.pdf`
 
 ## Build
 
@@ -22,7 +22,9 @@ cd ../author-response
 latexmk -pdf -interaction=nonstopmode -halt-on-error response.tex
 ```
 
-The current placeholder PDFs are named:
+Final PDFs:
 
-- `manuscript/ACOMPA2026_PQC_IoT_IEEE_PLACEHOLDERS.pdf`
-- `author-response/ACOMPA2026_Author_Response_DRAFT.pdf`
+- `manuscript/ACOMPA2026_PQC_IoT_IEEE_CAMERA_READY.pdf`
+- `author-response/ACOMPA2026_Author_Response.pdf`
+
+The paper is seven US Letter pages in IEEE two-column conference format. Run the conference's PDF eXpress check before submission; that external validation is not part of the local build.
