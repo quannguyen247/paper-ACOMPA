@@ -12,11 +12,11 @@ Date checked: 2026-09-16 (Asia/Ho_Chi_Minh)
 
 ## Content audit
 
-- Order-independent normalized-token comparison against V4.0 gives 0.9184 multiset Jaccard similarity and 95.87% retention of V4.0 tokens. Differences are dominated by figure text, IEEE bibliography/layout extraction, and a small number of explicit technical clarifications.
+- A pre-final order-independent normalized-token comparison against V4.0 gave 0.9184 multiset Jaccard similarity and 95.87% retention of V4.0 tokens. The final pass changed four sentence structures for readability without changing a number, citation, result, or technical claim. Differences remain dominated by figure text, IEEE bibliography/layout extraction, and a small number of explicit technical clarifications.
 - V4.0 is a substantive expansion and rewrite of V2.1, not merely a figure refresh. It adds the explicit placement table, migration metadata/policy, failure handling, and more bounded evaluation language; it also omits some older implementation-detail wording such as explicit DMA/PCIe and design-for-test discussion. The final paper follows V4.0 on these points while preserving V2.1's central tiered-placement argument and measurements.
 - The final PDF contains all 21 checked experimental values from V4.0: QEMU memory/test counts; ML-KEM, ML-DSA, and SLH-DSA single-operation timings and object sizes; all seven Table II elapsed/RSS/payload rows; and the 29.46 s observation.
 - Title and author order are unchanged. Paper ID #4 is retained in PDF metadata and displayed in the Author Response.
-- Deliberate textual corrections are limited to: naming AES-GCM and ChaCha20-Poly1305 as AEAD schemes; distinguishing AXI/AHB/APB bus interfaces from MMIO; clarifying that the gateway does not receive a device-bound private key; and aligning the Fig. 2 description with the direct 64-bit versus gateway-assisted constrained-node paths.
+- Deliberate technical corrections are limited to: naming AES-GCM and ChaCha20-Poly1305 as AEAD schemes; distinguishing AXI/AHB/APB bus interfaces from MMIO; clarifying that the gateway does not receive a device-bound private key; and aligning the Fig. 2 description with the direct 64-bit versus gateway-assisted constrained-node paths. A final academic-humanizer/humanizer pass removed four formulaic contrast structures without changing the underlying claims.
 - All 18 citations resolve. Standards references were spot-checked against the official NIST, W3C, and RFC records; no reference was silently replaced.
 
 ## Mechanical and visual checks
@@ -26,10 +26,11 @@ Date checked: 2026-09-16 (Asia/Ho_Chi_Minh)
 - Figures: exactly two final vector figures. Both SVG files contain vector paths with no embedded raster image, and `pdfimages -list` reports no raster image in the final paper.
 - Figure source hashes:
   - Fig. 1 SVG: `e630a503227cea7d23b8f590cb0105f93c4aede290f27588bac775f5da89e0e5`
-  - Fig. 2 SVG: `c1d4765523b558436b5a25d1fa7d0748149d080d8dac77cc2ba818bae5613054`
+  - Fig. 2 SVG: `bcd8a6575219a98a6e144670f99ed01a51cdb23ff9a4a813ccb161eedca5176d`
 - Fig. 1 is on page 4; Fig. 2 is on page 5. Both were reviewed at full-page resolution. Labels, arrows, boundaries, and captions are legible, and neither figure is cropped or distorted.
 - All paper and response fonts are embedded Type 1 fonts. Both PDFs are 612 x 792 pt US Letter, unencrypted, and contain no forms or JavaScript.
-- No undefined citation/reference, missing file, overfull box, or compilation error remains. Three nonfatal underfull-box warnings do not create visible gaps, clipping, or margin violations.
+- No undefined citation/reference, missing file, overfull box, or compilation error remains. Four nonfatal underfull-box warnings do not create clipping or margin violations; the page-5 vertical whitespace is caused by the full-width figure placement and remains within the IEEE layout.
+- The final bibliography page is manually balanced with the IEEEtran reference trigger before reference [13]; references [7]--[12] and [13]--[18] occupy the two columns at comparable depth.
 - Every page of the 7-page paper and 2-page response was rendered and visually inspected. Tables remain within the two-column grid; captions stay with their figures; no text overlaps the artwork.
 
 ## Reviewer-response audit
@@ -50,4 +51,4 @@ Date checked: 2026-09-16 (Asia/Ho_Chi_Minh)
 | Figure readiness against reviewer concern | 9.6/10 | Two sharp vector schematics, no embedded raster, full-page visual QA completed. |
 | Author Response readiness | 9.5/10 | Complete, specific, and honest about the unresolved experimental baseline. |
 
-**Overall camera-ready readiness: 9.4/10.** The two local PDFs are complete and internally consistent. The remaining external gate is IEEE PDF eXpress and the conference submission-system metadata check. The scientific limitation that remains is the lack of a matched physical-board/accelerator baseline; resolving it would require new experiments rather than editorial revision.
+**Overall camera-ready readiness: 9.4/10.** The two local PDFs are complete and internally consistent. The remaining external gate is the IEEE CPS submission-system formatting and metadata check. A separate PDF eXpress check applies only if CPS or ACOMPA supplies a Conference ID. The scientific limitation that remains is the lack of a matched physical-board/accelerator baseline; resolving it would require new experiments rather than editorial revision.

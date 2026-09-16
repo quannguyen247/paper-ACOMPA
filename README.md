@@ -27,4 +27,4 @@ Final PDFs:
 - `manuscript/ACOMPA2026_PQC_IoT_IEEE_CAMERA_READY.pdf`
 - `author-response/ACOMPA2026_Author_Response.pdf`
 
-The paper is seven US Letter pages in IEEE two-column conference format. Run the conference's PDF eXpress check before submission; that external validation is not part of the local build.
+The paper is seven US Letter pages in IEEE two-column conference format. Submit it through the IEEE CPS link supplied by ACOMPA 2026. Run a separate PDF eXpress check only if the CPS workflow or the conference provides a Conference ID; that external validation is not part of the local build.
