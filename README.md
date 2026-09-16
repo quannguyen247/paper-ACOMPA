@@ -5,12 +5,12 @@ This repository contains two independent LaTeX deliverables:
 - `manuscript/main.tex`: IEEE conference paper in US Letter, two-column format.
 - `author-response/response.tex`: point-by-point response to the supplied reviewer comments.
 
-The manuscript uses the official `IEEEtran` conference class. At the author's request, the two current figure files are the raster images extracted verbatim from DOCX V4.0 and are visibly marked as placeholders in the compiled PDF. Replace both files before camera-ready submission:
+The manuscript uses the official `IEEEtran` conference class. Figure 1 now uses the redrawn vector artwork supplied by the author; its SVG source and cropped PDF derivative are stored at:
 
-- `manuscript/figures/fig1_placeholder_docx.png`
-- `manuscript/figures/fig2_placeholder_docx.png`
+- `manuscript/figures/fig1.svg`
+- `manuscript/figures/fig1.pdf`
 
-The Author Response is likewise marked as a working draft because it would be inaccurate to claim that the reviewer's figure-quality concern has been resolved before the final redraws are supplied.
+Figure 2 remains the raster image extracted from DOCX V4.0 and is visibly marked as a placeholder in the compiled PDF. Replace `manuscript/figures/fig2_placeholder_docx.png` before camera-ready submission. The Author Response remains marked as a working draft until the final Figure 2 artwork is supplied and checked.
 
 ## Build
 

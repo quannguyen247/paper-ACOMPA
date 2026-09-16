@@ -15,7 +15,7 @@
 \hyphenation{Web-Authn post-quantum crypto-graphic crypto-graphy micro-con-trol-ler}
 \newcommand{\placeholdernotice}{%
   \par\smallskip
-  \fbox{\footnotesize Placeholder artwork from DOCX V4.0---replace before submission.}%
+  \fbox{\footnotesize Figure 2 placeholder artwork from DOCX V4.0---replace before submission.}%
   \par\smallskip
 }
 
@@ -117,12 +117,11 @@ To keep the decision deterministic, each profile defines allowed parameter sets,
 
 \subsection{End-node hardware architecture}
 
-Fig.~\ref{fig:end-node} illustrates the detailed architecture of the proposed PQC-enabled IoT node. The node is built around a 32/64-bit processing core, such as ARM, RISC-V, or x86, that runs the PQC software stack and controls the surrounding peripherals through a memory-mapped bus fabric such as AXI, AHB, APB, or MMIO. Power management supplies the node from a battery or external source, while the bootloader and secure-boot block establish the trusted firmware state before PQC credentials, policies, and communication services are enabled. RAM is used for temporary cryptographic buffers and session state, whereas flash or eMMC stores firmware images, credential metadata, logs, and local policy data.
+Fig.~\ref{fig:end-node} illustrates the detailed architecture of the proposed PQC-enabled IoT node. The node is built around a 32/64-bit processing core, such as ARM, RISC-V, or x86, that runs the PQC software stack and controls the surrounding peripherals through a memory-mapped system bus using AXI, AHB, or APB interfaces. Power management supplies the node from a battery or external source, while the bootloader and secure-boot block establish the trusted firmware state before PQC credentials, policies, and communication services are enabled. RAM is used for temporary cryptographic buffers and session state, whereas flash or eMMC stores firmware images, credential metadata, logs, and local policy data.
 
 \begin{figure*}[t]
 \centering
-\placeholdernotice
-\includegraphics[width=0.70\textwidth]{figures/fig1_placeholder_docx.png}
+\includegraphics[width=0.90\textwidth]{figures/fig1.pdf}
 \caption{End-node architecture for PQC-enabled IoT devices.}
 \label{fig:end-node}
 \end{figure*}
