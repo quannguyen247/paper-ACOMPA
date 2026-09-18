@@ -1,0 +1,9 @@
+manuscript/main.*
+!manuscript/main.tex
+!manuscript/main.pdf
+!manuscript/ACOMPA2026_PQC_IoT_IEEE_CAMERA_READY.pdf
+
+author-response/response.*
+!author-response/response.tex
+!author-response/response.pdf
+!author-response/ACOMPA2026_Author_Response.pdf
