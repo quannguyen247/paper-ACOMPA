@@ -6,7 +6,6 @@
 \usepackage{amsmath,amssymb}
 \usepackage{array,booktabs,tabularx}
 \usepackage{graphicx}
-\usepackage{microtype}
 \usepackage{xurl}
 \usepackage[hidelinks]{hyperref}
 
@@ -17,9 +16,9 @@
 \title{A New IoT Platform Based on PQC Algorithms: A Solution for Quantum Computing Threats}
 
 \author{%
-\IEEEauthorblockN{Nhat Phat Huynh, Dong Quan Nguyen, Quan Le, Thanh Hung Le, and Minh Son Nguyen\textsuperscript{1,2}}
-\IEEEauthorblockA{\textsuperscript{1}University of Information Technology\\
-\textsuperscript{2}Vietnam National University at HCM City\\
+\IEEEauthorblockN{Nhat Phat Huynh, Dong Quan Nguyen, Quan Le, Thanh Hung Le, and Minh Son Nguyen}
+\IEEEauthorblockA{University of Information Technology\\
+Vietnam National University at HCM City\\
 Ho Chi Minh City, Vietnam\\
 \{24521294, 24521438, 24521429\}@gm.uit.edu.vn; hunglt@ms.uit.edu.vn; sonnm@uit.edu.vn}}
 
@@ -32,7 +31,6 @@ Ho Chi Minh City, Vietnam\\
 
 \begin{document}
 \maketitle
-\nocite{shor1997,banerjee2019,ye2024,carril2024,mao2023,karl2025,roma2021,liu2018,schoeffel2021,kannwischer2022,stebila2017,fips203,fips204,fips205,webauthn2026,rfc9964,nistir8547,goertzen2023}
 
 \begin{abstract}
 The migration from classical public-key cryptography to post-quantum cryptography is becoming important for Internet of Things (IoT) authentication, because large-scale quantum computers would undermine the RSA, Diffie-Hellman, and elliptic-curve assumptions used by many current authentication and key-establishment mechanisms. This paper proposes a scalable Edge-IoT post-quantum cryptography (PQC) platform that treats PQC deployment as a tiered system problem rather than a direct primitive replacement. The architecture assigns ML-KEM to session-key establishment, ML-DSA to challenge-response authentication at the node or gateway tier, and SLH-DSA to high-assurance but infrequent firmware, audit, and attestation tasks. To connect these algorithms to IoT workflows, the platform defines a PQC-aware passkey metadata object, a gateway-mediated hybrid migration policy, and an embedded data path that uses shared buffers and high-throughput peripheral paths. A software-centric evaluation on QEMU-based ARM64 and RISC-V targets, together with a concurrent stress workload, compares latency, memory, and payload size. The results indicate that ML-KEM and ML-DSA are practical building blocks for the measured node/gateway workflow, whereas SLH-DSA should be used selectively because of its large signatures and high signing latency.
@@ -82,7 +80,7 @@ The proposed architecture is organized around three execution tiers. The IoT nod
 
 Table~\ref{tab:placement} turns this tiering into a placement rule. ML-KEM stays near the node because it produces a compact ciphertext and shared secret for session setup. ML-DSA can run at the node or gateway according to link bandwidth, buffer capacity, and authentication rate. SLH-DSA is pushed to the gateway or server because its signatures are large but useful for conservative firmware, audit, and attestation tasks. Hybrid mode is a transition state across all tiers.
 
-\begin{table}[t]
+\begin{table}[!t]
 \caption{Placement policy used by the proposed PQC IoT platform}
 \label{tab:placement}
 \centering
@@ -115,7 +113,7 @@ To keep the decision deterministic, each profile defines allowed parameter sets,
 
 Fig.~\ref{fig:end-node} illustrates the detailed architecture of the proposed PQC-enabled IoT node. The node is built around a 32/64-bit processing core, such as ARM, RISC-V, or x86, that runs the PQC software stack and controls the surrounding peripherals through a memory-mapped system bus using AXI, AHB, or APB interfaces. Power management supplies the node from a battery or external source, while the bootloader and secure-boot block establish the trusted firmware state before PQC credentials, policies, and communication services are enabled. RAM is used for temporary cryptographic buffers and session state, whereas flash or eMMC stores firmware images, credential metadata, logs, and local policy data.
 
-\begin{figure*}[t]
+\begin{figure*}[!t]
 \centering
 \includegraphics[width=0.90\textwidth]{figures/fig1.pdf}
 \caption{End-node architecture for PQC-enabled IoT devices.}
@@ -132,7 +130,7 @@ During authentication, the server issues a challenge and policy decision for the
 
 Key rotation is handled at the policy layer. When a parameter set is deprecated or a device class becomes too weak, the server can require re-enrollment with a stronger credential profile. For sleeping nodes, the gateway can buffer policy updates and apply them when the node wakes, reducing battery and radio overhead.
 
-\begin{figure*}[t]
+\begin{figure*}[!t]
 \centering
 \includegraphics[height=0.62\textheight,keepaspectratio]{figures/fig2.pdf}
 \caption{Three-tier deployment map for quantum-safe session establishment and passkey authentication.}
@@ -165,13 +163,17 @@ The QEMU results support the proposed placement policy. On the tested ARM64 targ
 
 SLH-DSA behaved differently. For selected RISC-V 64-bit SPHINCS+ parameters, sha2-128f-simple signed in about 205.06~ms with a 17088-byte signature, while shake-256f-robust signed in about 2508.36~ms with a 49856-byte signature. These values show that SLH-DSA is not a good default for frequent low-latency IoT messages. The architecture therefore treats SLH-DSA as a gateway/server operation or an infrequent firmware and audit operation.
 
-\begin{table}[t]
+\subsection{Stress-test analysis}
+
+Table~\ref{tab:stress} summarizes the stress workload. The signature-based algorithms show a direct payload penalty: Dilithium grows from 2420 to 4627 bytes across the tested security levels, while SPHINCS+ reaches 17088 bytes and approximately 29.46~s elapsed time in the measured stress workload. The Kyber family has smaller ciphertexts, from 768 to 1568 bytes. This supports the decision to keep ML-KEM at the node and to avoid per-message SLH-DSA signing at the edge.
+
+\begin{table}[!t]
 \caption{Stress workload summary from the prototype measurement}
 \label{tab:stress}
 \centering
-\scriptsize
+\footnotesize
 \renewcommand{\arraystretch}{1.08}
-\setlength{\tabcolsep}{2.5pt}
+\setlength{\tabcolsep}{2.0pt}
 \begin{tabularx}{\columnwidth}{@{}>{\raggedright\arraybackslash}p{0.20\columnwidth}Y>{\raggedright\arraybackslash}p{0.23\columnwidth}@{}}
 \toprule
 \textbf{Algorithm} & \textbf{Measured stress metrics (elapsed, RSS, payload)} & \textbf{Recommended tier} \\
@@ -186,10 +188,6 @@ SPHINCS+ & 29463.60~ms, 612~KB, 17088~B sig. & Server \\
 \bottomrule
 \end{tabularx}
 \end{table}
-
-\subsection{Stress-test analysis}
-
-Table~\ref{tab:stress} summarizes the stress workload. The signature-based algorithms show a direct payload penalty: Dilithium grows from 2420 to 4627 bytes across the tested security levels, while SPHINCS+ reaches 17088 bytes and approximately 29.46~s elapsed time in the measured stress workload. The Kyber family has smaller ciphertexts, from 768 to 1568 bytes. This supports the decision to keep ML-KEM at the node and to avoid per-message SLH-DSA signing at the edge.
 
 The memory column in Table~\ref{tab:stress} is a Linux/QEMU resident-set measurement, not a direct SRAM-footprint estimate for an ESP32-class microcontroller. It should therefore be used as a relative software-side indicator rather than as proof that the same workload fits unchanged in microcontroller SRAM. The dominant constraint is the combination of response time, payload length, and concurrency. A node that transmits small sensor messages over a low-bandwidth link can spend more bandwidth on the signature than on the application data. Therefore, the proposed platform batches, aggregates, or offloads heavy signatures at the gateway. For message-level confidentiality, the node establishes a shared secret using ML-KEM and then encrypts the application stream with a symmetric cipher.
 

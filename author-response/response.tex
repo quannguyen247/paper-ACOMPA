@@ -40,42 +40,42 @@ Nhat Phat Huynh, Dong Quan Nguyen, Quan Le, Thanh Hung Le, and Minh Son Nguyen
 
 \vspace{0.75em}
 
-We thank the reviewer for the careful assessment and for recognizing the practical, architecture-driven treatment of post-quantum cryptography (PQC) migration in heterogeneous Internet of Things (IoT) systems. We agree that the figures in the submitted manuscript did not meet publication quality. The four submitted figures have been consolidated into two author-redrawn vector schematics. Their SVG sources are retained with the manuscript, and cropped vector-PDF derivatives are used in LaTeX so that labels and line art remain sharp at publication scale. The title, scope, author list, algorithm-placement model, experimental data, and principal conclusions remain unchanged.
+We thank the reviewer for the careful assessment and for recognizing the paper's practical treatment of post-quantum cryptography (PQC) migration in heterogeneous Internet of Things (IoT) systems. We agree that the submitted figures were not suitable for publication. We replaced the four submitted figures with two author-redrawn vector schematics. Their SVG sources are included with the manuscript, and LaTeX uses cropped vector-PDF versions. The title and author list are unchanged, as are all reported benchmark values and the central placement conclusion. The revision also narrows the deployment claims to the evidence from the QEMU experiments, clarifies node and gateway responsibilities, removes the draft's unevaluated DMA and design-for-test details, and updates the supporting references.
 
 \section*{Response to the overall assessment}
 
 \textcolor{reviewblue}{\textbf{Reviewer assessment:}} \emph{Borderline Accept. The paper's core strength lies in its practical, architecture-driven approach to migrating heterogeneous IoT ecosystems to PQC. The study introduces a strategic algorithm-placement model across device tiers.}
 
-\textbf{Response.} We appreciate this assessment. The revised manuscript retains the architecture-driven scope and makes the placement argument easier to verify. Section III-A now presents the node, gateway, and server responsibilities as an explicit tiered placement model, and Table I states the placement and design rationale for ML-KEM, ML-DSA, SLH-DSA, and hybrid mode. The Introduction states the contribution in the same terms, while the Conclusion limits the claim to a migration-oriented architecture supported by the reported prototype measurements.
+\textbf{Response.} Section III-A now states the node, gateway, and server responsibilities as an explicit tiered placement model. Table I gives the placement and rationale for ML-KEM, ML-DSA, SLH-DSA, and hybrid mode. The Introduction uses the same framing, and the Conclusion limits the deployment claim to the node/gateway workflow measured in the prototype.
 
 \section*{Response to the figure-quality comment}
 
 \textcolor{reviewblue}{\textbf{Reviewer comment:}} \emph{I am mainly concerned about the AI-generated figures (Fig. 1 and Fig. 4). The human-generated figures (Fig. 2 and Fig. 3) are of low quality and therefore must be improved.}
 
-\textbf{Response.} We agree. The submitted artwork has not been reused. The four-figure structure has been consolidated into two author-redrawn vector schematics to remove overlap among the overview, hardware, sequence, and deployment views. Both delivered figures consist of vector paths without embedded raster images. We also standardized line weights, typography, arrow directions, component boundaries, and captions so that the architecture remains legible in the IEEE two-column layout.
+\textbf{Response.} We agree. None of the four submitted image files is used in the revised manuscript. We redrew and consolidated the overview, hardware, sequence, and deployment views into two vector schematics. Both figures consist of vector paths and contain no embedded raster images. They use consistent line weights, typography, arrow directions, component boundaries, and captions.
 
-The consolidation was deliberate:
+The two figures divide the content as follows:
 
 \begin{itemize}
   \item \textbf{Fig. 1, ``End-node architecture for PQC-enabled IoT devices,''} shows the processing core, PQC software stack, bootloader and secure boot, RAM, storage, network path, system bus, and peripheral interfaces discussed in Section III-C.
   \item \textbf{Fig. 2, ``Three-tier deployment map for quantum-safe session establishment and passkey authentication,''} shows constrained and Linux-capable end nodes, gateway-side ML-KEM/KDF/AEAD and signature functions, optional direct PQC operation, and cloud/server trust services discussed in Section III-D.
 \end{itemize}
 
-The sequence previously shown in submitted Fig. 3 is now described in Section III-D rather than repeated as a separate diagram. The revised Fig. 2 incorporates the tier-placement content previously distributed across the overview and deployment figures. The manuscript now contains exactly two figures, with no obsolete references to Figs. 3 or 4. This revision changes the presentation, not the architecture or experimental claims.
+The sequence previously shown in submitted Fig. 3 is now described in Section III-D. The revised Fig. 2 combines the tier-placement content that was previously split between the overview and deployment figures. The manuscript contains exactly two figures and has no obsolete references to Figs. 3 or 4. The accompanying text clarifies placement conditions, credential ownership, gateway delegation, and failure handling. The reported benchmark values are unchanged, while the deployment claims have been narrowed to what the QEMU prototype supports.
 
 \section*{Response to technical quality and soundness}
 
 \textcolor{reviewblue}{\textbf{Reviewer assessment:}} \emph{Fair (Some technical issues or missing baselines, but potentially fixable).}
 
-\textbf{Response.} We acknowledge the absence of a matched physical-board or accelerator baseline. No additional board-level experiment was available for this revision, so we did not introduce an unmeasured comparison. Instead, the revised manuscript makes the evaluation boundary explicit in Section IV: the reported values are software-centric QEMU prototype measurements used as placement evidence, not cycle-accurate hardware characterization. Section IV-C also states that Linux/QEMU resident-set size is not an ESP32 SRAM-footprint measurement. The limitations paragraph identifies physical-board power, radio throughput, flash wear, timing leakage, and comparisons with existing PQC IoT architectures as future work.
+\textbf{Response.} We did not have a matched physical-board or accelerator baseline for this revision and therefore did not add an unmeasured comparison. Section IV now identifies the reported values as software measurements from a QEMU prototype, used as evidence for placement decisions rather than as cycle-accurate hardware results. Section IV-C states that Linux/QEMU resident-set size is not an estimate of ESP32 SRAM use. The limitations paragraph assigns physical-board power, radio throughput, flash wear, timing leakage, and comparison with existing PQC IoT architectures to future work.
 
-Within that stated scope, the technical presentation has been tightened in three places. Table I connects each primitive to a deployment tier and rationale. Table II reports the measured elapsed time, resident memory, payload size, and recommended tier without changing the underlying values. Section IV-D links the observations to buffer sizing, gateway admission control, and candidate acceleration kernels. The end-node description now distinguishes AXI/AHB/APB bus interfaces from memory-mapped I/O, and the secure-channel text identifies AES-GCM and ChaCha20-Poly1305 as example authenticated-encryption schemes. These revisions clarify what the evidence supports without extending the conclusions beyond the prototype.
+Table I connects each primitive to a deployment tier and explains the placement. Table II reports elapsed time, resident memory, payload size, and the recommended tier; its measured values are unchanged. Section IV-D relates those measurements to buffer sizing, gateway admission control, and possible acceleration kernels. The end-node description identifies AXI, AHB, and APB as interfaces of the memory-mapped system bus. It replaces the draft's DMA-specific data path with a platform-neutral shared-buffer model because the evaluation did not measure a DMA implementation. The secure-channel text names AES-GCM and ChaCha20-Poly1305 as example authenticated-encryption schemes. We also removed the draft's design-for-test and fault-injection extension because it was outside the implemented and measured system.
 
 \section*{Response to originality and novelty}
 
 \textcolor{reviewblue}{\textbf{Reviewer assessment:}} \emph{Fair (Incremental improvement or a minor new application).}
 
-\textbf{Response.} We have not reframed the work as a new cryptographic primitive. The revised Introduction states the contribution more narrowly: (1) a layered node/gateway/server architecture for PQC-enabled IoT, (2) a PQC-aware passkey metadata and hybrid-policy model, and (3) a measurement-driven rule for placing ML-KEM, ML-DSA, and SLH-DSA. Section III and the two revised figures are organized around these system-level contributions. This wording separates the paper's architectural contribution from the standardized algorithms and software implementations on which the prototype relies.
+\textbf{Response.} The paper does not claim a new cryptographic primitive. The revised Introduction defines the contribution as a layered node/gateway/server architecture, a PQC-aware passkey metadata and hybrid-policy model, and a measurement-based rule for placing ML-KEM, ML-DSA, and SLH-DSA. Section III and the two revised figures follow these system-level contributions. The standardized algorithms and reference software remain the basis of the prototype.
 
 \section*{Summary of manuscript changes}
 
@@ -87,13 +87,15 @@ Within that stated scope, the technical presentation has been tightened in three
 \midrule
 AI-generated appearance in submitted Figs. 1 and 4 & Replaced the submitted artwork with two author-redrawn SVG schematics and vector-PDF derivatives & Revised Figs. 1 and 2; Sections III-C--D \\
 Low quality of submitted Figs. 2 and 3 & Standardized line art, typography, arrows, labels, and captions; removed redundant figure content & Revised Figs. 1 and 2 \\
-Technical scope and possible missing baselines & Preserved the measured values, clarified the QEMU/prototype boundary and interface terminology, and identified unperformed board-level comparisons as future work & Section IV-A--D; Conclusion \\
+Technical scope and possible missing baselines & Kept all measured values; narrowed the deployment claim to the QEMU evidence; replaced the unevaluated DMA-specific path with the shared-buffer model; removed the design-for-test extension; stated future work & Sections III-C--E; IV-A--D; Conclusion \\
+Security boundaries and placement policy & Clarified private-key ownership, gateway delegation, hybrid-policy enforcement, and the conditions for node or gateway placement & Sections III-A--E \\
+Migration evidence and references & Corrected bibliographic data, removed the ML-DSA-for-WebAuthn Internet-Draft citation, and added transition and fragmentation sources used in the revised discussion & Sections II-B--D; References \\
 Incremental novelty & Stated the contribution as tiered placement, migration metadata/policy, and measurement-guided system design rather than a new primitive & Introduction; Section III-A; Conclusion \\
 \bottomrule
 \end{tabularx}
 \normalsize
 
 \vspace{0.6em}
-We thank the reviewer again. The camera-ready manuscript now contains the final vector artwork and the corresponding figure references. No new experiment, numerical result, or cryptographic claim was introduced during the figure revision.
+We thank the reviewer again. The camera-ready manuscript contains the final vector artwork and the corresponding figure references. We added no experiment or numerical result, and all reported benchmark values are unchanged. The other revisions clarify the placement policy, security boundaries, limitations, and supporting references.
 
 \end{document}
